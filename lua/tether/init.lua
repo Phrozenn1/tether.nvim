@@ -126,6 +126,7 @@ function M.setup(user_opts)
   setup_user_commands()
   setup_keymaps()
   setup_autocmds()
+  flowmodoro.start_sync_watcher()
 end
 
 return M
