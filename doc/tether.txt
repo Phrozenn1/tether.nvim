@@ -1,0 +1,153 @@
+*tether.txt*          For Neovim 0.9.0+                  Last change: 2026 Nov 08
+
+==============================================================================
+CONTENTS                                                     *tether-contents*
+
+  1. Introduction ............................................. |tether-intro|
+  2. Requirements ...................................... |tether-requirements|
+  3. Installation ...................................... |tether-installation|
+  4. Commands .............................................. |tether-commands|
+  5. Default Mappings ...................................... |tether-mappings|
+  6. Configuration .................................... |tether-configuration|
+  7. Flowmodoro Engine .................................... |tether-flowmodoro|
+  8. RAM-Dump Protocol ...................................... |tether-ramdump|
+  9. Impulse Buffer (Side-Quests) ........................... |tether-impulse|
+ 10. Yak-Shaving Detector ....................................... |tether-yak|
+
+==============================================================================
+1. INTRODUCTION                                                 *tether-intro*
+
+tether.nvim is an assistive workflow plugin designed to mitigate executive
+dysfunction, time blindness, and cognitive inertia during intensive work and
+study sessions.
+
+Core features:
+- Flowmodoro Timer: Counts up during flow; automatically computes break times
+  using a proportional 45:15 ratio (1/3 of focus time).
+- Top-Right Floating HUD: An unfocusable, always-on-top window with dynamic
+  colored borders (green for focus, red for break).
+- RAM-Dump Save-State: A 60-second protocol to freeze active working memory
+  before leaving your keyboard or breaking hyperfocus.
+- Side-Quest Impulse Buffer: Instant 1-line thought capture so you never lose
+  stray ideas to rabbit holes.
+- Yak-Shaving Alarm: Sarcastic notifications when you drift into editing
+  dotfiles or configuration files during an active focus block.
+
+==============================================================================
+2. REQUIREMENTS                                         *tether-requirements*
+
+- Neovim >= 0.9.0 (requires floating window `title` and `vim.uv`/`vim.loop`).
+- Nerd Font (optional, recommended for icon glyphs).
+
+==============================================================================
+3. INSTALLATION                                         *tether-installation*
+
+Using lazy.nvim: >lua
+  {
+    "Phrozenn1/tether.nvim",
+    event = "VeryLazy",
+    opts = {},
+  }
+<
+Using mini.deps: >lua
+  MiniDeps.add({ source = "Phrozenn1/tether.nvim" })
+  require("tether").setup()
+<
+Using vim-plug: >vim
+  Plug 'Phrozenn1/tether.nvim'
+  " In lua configuration:
+  lua require('tether').setup()
+<
+Manual (built-in Neovim package): >sh
+  git clone https://github.com/Phrozenn1/tether.nvim.git \
+    "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/pack/plugins/start/tether.nvim"
+<
+
+==============================================================================
+4. COMMANDS                                                 *tether-commands*
+
+:TetherFlowToggle                                          *:TetherFlowToggle*
+    Cycles state: Idle -> Focus -> Break -> Idle.
+    Calculates break time based on ratio when exiting focus.
+
+:TetherFlowReset                                            *:TetherFlowReset*
+    Stops active timer, resets counters, and closes the floating HUD.
+
+:TetherHud                                                        *:TetherHud*
+    Toggles the floating HUD window visibility without stopping background
+    timers.
+
+:TetherRamDump                                                *:TetherRamDump*
+    Inserts the 3-line RAM-dump template below the cursor and starts insert
+    mode right after `[NÅ]: `.
+
+:TetherResume                                                 *:TetherResume*
+    Jumps cursor and buffer back to the file and line of the last RAM-dump.
+
+:TetherImpulse                                               *:TetherImpulse*
+    Opens a 1-line input prompt to offload a stray thought or side-quest.
+
+:TetherImpulseList                                       *:TetherImpulseList*
+    Opens the stored impulses list in a split buffer.
+
+==============================================================================
+5. DEFAULT MAPPINGS                                         *tether-mappings*
+
+The following keymaps are mapped by default under `<leader>t`:
+
+  <leader>tf    |:TetherFlowToggle| (Start focus -> Switch to break -> Stop)
+  <leader>tF    |:TetherFlowReset|  (Force-stop timer and close HUD)
+  <leader>th    |:TetherHud|        (Toggle HUD visibility)
+  <leader>td    |:TetherRamDump|    (Insert RAM-dump save-state)
+  <leader>tr    |:TetherResume|     (Resume at last RAM-dump location)
+  <leader>ti    |:TetherImpulse|    (Capture side-quest / impulse)
+
+==============================================================================
+6. CONFIGURATION                                       *tether-configuration*
+
+Pass options table to `setup()`: >lua
+  require("tether").setup({
+    ratio = {
+      focus = 45,
+      rest = 15,
+    },
+    hud = {
+      enabled = true,
+      row = 1,
+      col_offset = -1,
+      width = 24,
+      height = 1,
+      border = "rounded",
+      zindex = 100,
+      colors = {
+        focus_border = "#98c379",
+        focus_fg = "#98c379",
+        rest_border = "#e06c75",
+        rest_fg = "#e06c75",
+        title_fg = "#abb2bf",
+      },
+    },
+    ramdump = {
+      cursor_line_offset = 2,
+      cursor_col = 13,
+    },
+    impulse = {
+      file = vim.fn.stdpath("data") .. "/tether_impulses.md",
+    },
+    yak_shaving = {
+      enabled = true,
+      throttle_seconds = 300,
+    },
+    keymaps = {
+      flow_toggle = "<leader>tf",
+      flow_reset = "<leader>tF",
+      hud_toggle = "<leader>th",
+      ramdump = "<leader>td",
+      impulse = "<leader>ti",
+      resume = "<leader>tr",
+    },
+  })
+<
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

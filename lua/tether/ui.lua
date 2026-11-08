@@ -1,4 +1,4 @@
-local config = require("adhd-structure.config")
+local config = require("tether.config")
 
 local M = {
   buf = nil,
@@ -11,32 +11,32 @@ function M.setup_highlights()
   local colors = config.options.hud.colors
 
   -- Grønn ramme for fokus
-  vim.api.nvim_set_hl(0, "AdhdFocusBorder", {
+  vim.api.nvim_set_hl(0, "TetherFocusBorder", {
     fg = colors.focus_border,
     default = true,
   })
-  vim.api.nvim_set_hl(0, "AdhdFocusTitle", {
+  vim.api.nvim_set_hl(0, "TetherFocusTitle", {
     fg = colors.focus_fg,
     bold = true,
     default = true,
   })
-  vim.api.nvim_set_hl(0, "AdhdFocusText", {
+  vim.api.nvim_set_hl(0, "TetherFocusText", {
     fg = colors.focus_fg,
     bold = true,
     default = true,
   })
 
   -- Rød ramme for pause
-  vim.api.nvim_set_hl(0, "AdhdBreakBorder", {
+  vim.api.nvim_set_hl(0, "TetherBreakBorder", {
     fg = colors.rest_border,
     default = true,
   })
-  vim.api.nvim_set_hl(0, "AdhdBreakTitle", {
+  vim.api.nvim_set_hl(0, "TetherBreakTitle", {
     fg = colors.rest_fg,
     bold = true,
     default = true,
   })
-  vim.api.nvim_set_hl(0, "AdhdBreakText", {
+  vim.api.nvim_set_hl(0, "TetherBreakText", {
     fg = colors.rest_fg,
     bold = true,
     default = true,
@@ -91,10 +91,10 @@ function M.render(mode, text, title)
   win_cfg.title_pos = "center"
 
   local is_focus = (mode == "focus")
-  local hl_ns = is_focus and "FloatBorder:AdhdFocusBorder,FloatTitle:AdhdFocusTitle,Normal:NormalFloat"
-    or "FloatBorder:AdhdBreakBorder,FloatTitle:AdhdBreakTitle,Normal:NormalFloat"
+  local hl_ns = is_focus and "FloatBorder:TetherFocusBorder,FloatTitle:TetherFocusTitle,Normal:NormalFloat"
+    or "FloatBorder:TetherBreakBorder,FloatTitle:TetherBreakTitle,Normal:NormalFloat"
 
-  -- Oppdater tekst i bufferen (sentrert eller polstret)
+  -- Oppdater tekst i bufferen (sentrert)
   local width = win_cfg.width
   local pad = math.max(0, math.floor((width - vim.fn.strdisplaywidth(text)) / 2))
   local padded_text = string.rep(" ", pad) .. text
@@ -102,9 +102,9 @@ function M.render(mode, text, title)
   vim.api.nvim_buf_set_lines(M.buf, 0, -1, false, { padded_text })
 
   -- Påfør tekst-highlight
-  local text_hl = is_focus and "AdhdFocusText" or "AdhdBreakText"
+  local text_hl = is_focus and "TetherFocusText" or "TetherBreakText"
   vim.api.nvim_buf_clear_namespace(M.buf, -1, 0, -1)
-  local ns = vim.api.nvim_create_namespace("adhd_hud_text")
+  local ns = vim.api.nvim_create_namespace("tether_hud_text")
   vim.api.nvim_buf_add_highlight(M.buf, ns, text_hl, 0, 0, -1)
 
   if not M.win or not vim.api.nvim_win_is_valid(M.win) then

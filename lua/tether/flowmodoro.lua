@@ -1,5 +1,5 @@
-local config = require("adhd-structure.config")
-local ui = require("adhd-structure.ui")
+local config = require("tether.config")
+local ui = require("tether.ui")
 
 local M = {
   STATE_IDLE = "idle",
@@ -37,8 +37,13 @@ local function calculate_break_time(focus_sec)
   local rest_base = math.max(1, ratio.rest or 15)
 
   local break_sec = math.floor(focus_sec * (rest_base / focus_base))
-  -- Minimum 30 sekunder hvis man har jobbet litt
   return math.max(30, break_sec)
+end
+
+---Sjekker om en aktiv fokusøkt pågår
+---@return boolean
+function M.is_focus_active()
+  return M.state == M.STATE_FOCUS
 end
 
 ---Oppdaterer HUD og intern tilstand ved hver timer-tikk
@@ -53,7 +58,6 @@ local function tick()
     M.remaining_break_sec = M.remaining_break_sec - 1
 
     if M.remaining_break_sec <= 0 then
-      -- Pausen er fullført
       M.state = M.STATE_IDLE
       M.stop_timer()
 
@@ -62,11 +66,10 @@ local function tick()
 
       if config.options.notifications.enabled then
         vim.notify("Pausen er over! 🚀 Klar for neste fokusøkt?", vim.log.levels.WARN, {
-          title = "ADHD-Structure (Flowmodoro)",
+          title = "Tether Flowmodoro",
         })
       end
 
-      -- Lukk HUD automatisk etter 6 sekunder hvis den ikke startes på nytt
       vim.defer_fn(function()
         if M.state == M.STATE_IDLE then
           ui.close()
@@ -116,7 +119,7 @@ function M.start_focus()
 
   if config.options.notifications.enabled then
     vim.notify("Fokusøkt startet! Jobb i flyt så lenge du orker.", vim.log.levels.INFO, {
-      title = "Flowmodoro",
+      title = "Tether Flowmodoro",
     })
   end
 end
@@ -124,10 +127,9 @@ end
 ---Avslutter fokus og går over til pause basert på ratio (f.eks. 45:15)
 function M.start_break()
   if M.elapsed_focus_sec < 10 then
-    -- Mindre enn 10 sekunders fokus regnes som avbrutt
     M.reset()
     if config.options.notifications.enabled then
-      vim.notify("Økt avbrutt (under 10 sek).", vim.log.levels.INFO, { title = "Flowmodoro" })
+      vim.notify("Økt avbrutt (under 10 sekunder).", vim.log.levels.INFO, { title = "Tether" })
     end
     return
   end
@@ -145,10 +147,10 @@ function M.start_break()
   if config.options.notifications.enabled then
     local msg = string.format("Fokusøkt: %s.\nOpptjent pause (45:15): %s.", focus_formatted, break_formatted)
     if config.options.notifications.remind_ramdump then
-      local key = config.options.keymaps.ramdump or "<leader>rd"
+      local key = config.options.keymaps.ramdump or "<leader>td"
       msg = msg .. string.format("\n💡 Tips: Ta en RAM-dump (%s) for å fryse arbeidsminnet!", key)
     end
-    vim.notify(msg, vim.log.levels.INFO, { title = "Flowmodoro Pause" })
+    vim.notify(msg, vim.log.levels.INFO, { title = "Tether Pause" })
   end
 end
 
@@ -172,7 +174,7 @@ function M.reset()
   ui.close()
 
   if config.options.notifications.enabled then
-    vim.notify("Flowmodoro nullstilt.", vim.log.levels.INFO, { title = "Flowmodoro" })
+    vim.notify("Flowmodoro nullstilt.", vim.log.levels.INFO, { title = "Tether" })
   end
 end
 
@@ -180,7 +182,6 @@ end
 function M.toggle_hud()
   local is_visible = ui.toggle_visibility()
   if is_visible and M.state ~= M.STATE_IDLE then
-    -- Tving oppdatering
     tick()
   end
 end
