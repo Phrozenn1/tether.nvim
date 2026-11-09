@@ -111,6 +111,14 @@ function M.check_external_sync()
     return
   end
 
+  -- Ratio-synkronisering fra Desktop hvis tilstede i payload
+  if data.focus_ratio and data.break_ratio then
+    if config.options and config.options.ratio then
+      config.options.ratio.focus = data.focus_ratio
+      config.options.ratio.rest = data.break_ratio
+    end
+  end
+
   local is_new_seq = (data.seq ~= M.last_seen_desktop_seq)
   local is_desktop = (data.writer == "desktop")
   local is_startup_recovery = (M.last_seen_desktop_seq == 0 and data.state ~= "idle" and M.state == "idle")
@@ -294,7 +302,9 @@ function M.start_break()
   ui.render("break", string.format("%s %s", icon, break_formatted), "Pause")
 
   if config.options.notifications.enabled then
-    local msg = string.format("Fokusøkt: %s.\nOpptjent pause (45:15): %s.", focus_formatted, break_formatted)
+    local f_ratio = (config.options.ratio and config.options.ratio.focus) or 45
+    local b_ratio = (config.options.ratio and config.options.ratio.rest) or 15
+    local msg = string.format("Fokusøkt: %s.\nOpptjent pause (%d:%d): %s.", focus_formatted, f_ratio, b_ratio, break_formatted)
     if config.options.notifications.remind_ramdump then
       local key = config.options.keymaps.ramdump or "<leader>td"
       msg = msg .. string.format("\n💡 Tips: Ta en RAM-dump (%s) for å fryse arbeidsminnet!", key)
