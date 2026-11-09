@@ -63,8 +63,10 @@ local function calculate_break_time(focus_sec)
   local focus_base = math.max(1, ratio.focus or 45)
   local rest_base = math.max(1, ratio.rest or 15)
 
-  local break_sec = math.floor(focus_sec * (rest_base / focus_base))
-  return math.max(30, break_sec)
+  local newly_focused = math.max(0, focus_sec - (M.focus_at_last_break or 0))
+  local newly_earned = math.floor(newly_focused * (rest_base / focus_base))
+  local total = (M.banked_break_sec or 0) + newly_earned
+  return math.max(30, total)
 end
 
 ---Kringkaster gjeldende tilstand til Tether Desktop
@@ -78,6 +80,7 @@ local function broadcast_state()
     break_duration_sec = M.break_duration_sec or 0,
     elapsed_focus_sec = M.elapsed_focus_sec or 0,
     remaining_break_sec = M.remaining_break_sec or 0,
+    banked_break_sec = M.banked_break_sec or 0,
     focus_ratio = config.options.ratio.focus or 45,
     break_ratio = config.options.ratio.rest or 15,
     writer = "nvim",
@@ -144,6 +147,8 @@ function M.check_external_sync()
       M.state = M.STATE_FOCUS
       M.start_epoch = data.start_epoch or now
       M.elapsed_focus_sec = math.max(0, now - M.start_epoch)
+      M.banked_break_sec = data.banked_break_sec or 0
+      M.focus_at_last_break = M.elapsed_focus_sec
       M.start_uv_timer()
 
       local time_str = format_time(M.elapsed_focus_sec)
@@ -166,6 +171,8 @@ function M.check_external_sync()
       M.state = M.STATE_IDLE
       M.elapsed_focus_sec = 0
       M.remaining_break_sec = 0
+      M.banked_break_sec = 0
+      M.focus_at_last_break = 0
       M.start_epoch = 0
       M.stop_timer()
       ui.close()
@@ -326,6 +333,8 @@ function M.start_focus()
   M.state = M.STATE_FOCUS
   M.start_epoch = os.time()
   M.elapsed_focus_sec = 0
+  M.banked_break_sec = 0
+  M.focus_at_last_break = 0
   M.start_uv_timer()
   broadcast_state()
 
@@ -341,7 +350,7 @@ end
 
 ---Avslutter fokus og går over til pause basert på ratio (f.eks. 45:15)
 function M.start_break()
-  if M.elapsed_focus_sec < 10 then
+  if M.elapsed_focus_sec < 10 and (M.banked_break_sec or 0) == 0 then
     M.reset()
     if config.options.notifications.enabled then
       vim.notify("Økt avbrutt (under 10 sekunder).", vim.log.levels.INFO, { title = "Tether" })
@@ -357,6 +366,8 @@ function M.start_break()
   M.start_epoch = os.time()
   M.break_duration_sec = break_sec
   M.remaining_break_sec = break_sec
+  M.banked_break_sec = 0
+  M.focus_at_last_break = M.elapsed_focus_sec
   broadcast_state()
 
   local focus_mins = math.floor(M.elapsed_focus_sec / 60)
@@ -386,7 +397,37 @@ function M.start_break()
   end
 end
 
----Veksler tilstand (Idle -> Fokus -> Pause -> Idle)
+---Gjenopptar fokusøkt der den slapp og sparer gjenværende pauseminutter
+function M.resume_focus()
+  local now = os.time()
+  if M.start_epoch and M.start_epoch > 0 and M.break_duration_sec and M.break_duration_sec > 0 then
+    local elapsed = math.max(0, now - M.start_epoch)
+    M.remaining_break_sec = math.max(0, M.break_duration_sec - elapsed)
+  end
+
+  M.banked_break_sec = M.remaining_break_sec or 0
+  M.remaining_break_sec = 0
+  M.break_duration_sec = 0
+
+  M.state = M.STATE_FOCUS
+  M.start_epoch = now - M.elapsed_focus_sec
+  M.focus_at_last_break = M.elapsed_focus_sec
+  M.start_uv_timer()
+  broadcast_state()
+
+  local icon = config.options.hud.icons.focus or "󰔛"
+  ui.render("focus", string.format("%s %s", icon, format_time(M.elapsed_focus_sec)), "Fokus")
+
+  if config.options.notifications.enabled then
+    vim.notify(
+      string.format("Fokus gjenopptatt fra %s 🚀\nDu har %s pause spart til gode!", format_time(M.elapsed_focus_sec), format_time(M.banked_break_sec)),
+      vim.log.levels.INFO,
+      { title = "Tether Flowmodoro" }
+    )
+  end
+end
+
+---Veksler tilstand (Idle -> Fokus -> Pause -> Gjenoppta Fokus)
 function M.toggle()
   if M.state == M.STATE_IDLE then
     M.start_focus()
@@ -398,7 +439,7 @@ function M.toggle()
   elseif M.state == M.STATE_FOCUS then
     M.start_break()
   elseif M.state == M.STATE_BREAK then
-    M.reset()
+    M.resume_focus()
   end
 end
 
@@ -408,6 +449,8 @@ function M.reset()
   M.state = M.STATE_IDLE
   M.elapsed_focus_sec = 0
   M.remaining_break_sec = 0
+  M.banked_break_sec = 0
+  M.focus_at_last_break = 0
   M.start_epoch = 0
   M.break_duration_sec = 0
   broadcast_state()
