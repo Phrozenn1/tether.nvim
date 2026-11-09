@@ -1,5 +1,22 @@
 # tether.nvim ⚓
 
+<!--toc:start-->
+- [tether.nvim ⚓](#tethernvim)
+  - [Flowmodoro Timer, RAM-Dump & ADHD Workflow Engine for Neovim](#flowmodoro-timer-ram-dump-adhd-workflow-engine-for-neovim)
+  - [⏱️ Why Flowmodoro Instead of Pomodoro?](#️-why-flowmodoro-instead-of-pomodoro)
+  - [✨ Features](#features)
+  - [⚡ Requirements](#requirements)
+  - [📦 Installation](#📦-installation)
+    - [[lazy.nvim](https://github.com/folke/lazy.nvim)](#lazynvimhttpsgithubcomfolkelazynvim)
+    - [[mini.deps](https://github.com/echasnovski/mini.deps)](#minidepshttpsgithubcomechasnovskiminideps)
+    - [[vim-plug](https://github.com/junegunn/vim-plug)](#vim-plughttpsgithubcomjunegunnvim-plug)
+    - [Manual Installation (Native Neovim Packpath)](#manual-installation-native-neovim-packpath)
+  - [⌨️ Default Keymaps (`<leader>t`)](#️-default-keymaps-leadert)
+  - [⚙️ Configuration (Defaults)](#️-configuration-defaults)
+  - [🏷️ Topics / Keywords](#🏷️-topics-keywords)
+  - [📄 License](#📄-license)
+<!--toc:end-->
+
 ### Flowmodoro Timer, RAM-Dump & ADHD Workflow Engine for Neovim
 
 A neurodivergent-friendly deep-work companion for Neovim designed to mitigate **executive dysfunction**, **time blindness**, and **cognitive inertia**.
@@ -98,6 +115,8 @@ git clone https://github.com/Phrozenn1/tether.nvim.git \
 | **`<leader>td`** | `:TetherRamDump` | **T**ether **D**ump: Insert 60-second RAM-dump save-state |
 | **`<leader>tr`** | `:TetherResume` | **T**ether **R**esume: Jump back to last RAM-dump location |
 | **`<leader>ti`** | `:TetherImpulse` | **T**ether **I**mpulse: Offload a side-quest / stray thought |
+| — | `:TetherDesktop` | Launch or focus the native cross-platform Tether Desktop companion |
+| — | `:TetherConfig` | Open `~/.config/tether/config.json` in split |
 
 > [!TIP]
 > Keymaps can be disabled or modified by setting `keymaps = false` or passing your own mapping dictionary in `opts.keymaps`.
@@ -150,6 +169,12 @@ require("tether").setup({
   -- Side-quest impulse capture file
   impulse = {
     file = vim.fn.stdpath("data") .. "/tether_impulses.md",
+    format = "markdown_checkbox", -- "markdown_checkbox" | "markdown_bullet" | "todo_txt" | "json"
+  },
+  -- Cross-platform Desktop Companion integration
+  companion = {
+    auto_start_desktop = true,
+    desktop_cmd = "tether",
   },
   -- Sarcastic Yak-Shaving detector
   yak_shaving = {

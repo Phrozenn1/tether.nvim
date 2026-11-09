@@ -43,7 +43,8 @@ M.defaults = {
   },
   -- Side-quest / Impulsbuffer
   impulse = {
-    file = vim.fn.stdpath("data") .. "/tether_impulses.md",
+    file = vim.fn.expand("~/.local/state/tether/impulses.md"),
+    format = "markdown_checkbox", -- "markdown_checkbox" | "markdown_bullet" | "todo_txt" | "json"
   },
   -- Yak-Shaving / Kaninhull-detektor
   yak_shaving = {
@@ -77,6 +78,11 @@ M.defaults = {
       "Flott arkitektur på den hjelpefunksjonen! Synd ingen ba om den.",
     },
   },
+  -- Desktop companion
+  companion = {
+    auto_start_desktop = true,
+    desktop_cmd = "tether",
+  },
   -- Standard tastatursnarveier (<leader>t)
   keymaps = {
     flow_toggle = "<leader>tf",
@@ -93,12 +99,61 @@ M.defaults = {
   },
 }
 
+---Laster innstillinger fra ~/.config/tether/config.json dersom tilgjengelig
+local function load_external_config()
+  local config_path = vim.fn.expand("~/.config/tether/config.json")
+  if vim.fn.filereadable(config_path) == 1 then
+    local content = vim.fn.readfile(config_path)
+    if content and #content > 0 then
+      local ok, decoded = pcall(vim.fn.json_decode, table.concat(content, "\n"))
+      if ok and type(decoded) == "table" then
+        return decoded
+      end
+    end
+  end
+  return nil
+end
+
 ---@type TetherConfig
 M.options = vim.deepcopy(M.defaults)
 
 ---@param user_opts? TetherConfig
 function M.setup(user_opts)
-  M.options = vim.tbl_deep_extend("force", vim.deepcopy(M.defaults), user_opts or {})
+  local ext = load_external_config()
+  local ext_opts = {}
+  if ext then
+    if ext.ratio_focus then
+      ext_opts.ratio = ext_opts.ratio or {}
+      ext_opts.ratio.focus = ext.ratio_focus
+    end
+    if ext.ratio_break then
+      ext_opts.ratio = ext_opts.ratio or {}
+      ext_opts.ratio.rest = ext.ratio_break
+    end
+    if ext.side_quests_file and ext.side_quests_file ~= "" then
+      ext_opts.impulse = ext_opts.impulse or {}
+      ext_opts.impulse.file = ext.side_quests_file
+    end
+    if ext.side_quests_format then
+      ext_opts.impulse = ext_opts.impulse or {}
+      ext_opts.impulse.format = ext.side_quests_format
+    end
+    if ext.notifications_enabled ~= nil then
+      ext_opts.notifications = ext_opts.notifications or {}
+      ext_opts.notifications.enabled = ext.notifications_enabled
+    end
+    if ext.remind_ramdump ~= nil then
+      ext_opts.notifications = ext_opts.notifications or {}
+      ext_opts.notifications.remind_ramdump = ext.remind_ramdump
+    end
+    if ext.auto_start_desktop ~= nil then
+      ext_opts.companion = ext_opts.companion or {}
+      ext_opts.companion.auto_start_desktop = ext.auto_start_desktop
+    end
+  end
+
+  local merged = vim.tbl_deep_extend("force", vim.deepcopy(M.defaults), ext_opts)
+  M.options = vim.tbl_deep_extend("force", merged, user_opts or {})
 end
 
 return M
