@@ -66,6 +66,11 @@ function M.capture()
       end
     end
 
+    local ok_stats, stats = pcall(require, "tether.stats")
+    if ok_stats and stats.record_impulse then
+      stats.record_impulse()
+    end
+
     if config.options.notifications.enabled then
       vim.notify("Side-quest forankret! ⚓ Arbeidsminnet er avlastet, tilbake til flyten.", vim.log.levels.INFO, {
         title = "Tether Impulse",

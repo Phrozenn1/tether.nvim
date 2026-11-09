@@ -3,6 +3,7 @@ local ui = require("tether.ui")
 
 local M = {
   STATE_IDLE = "idle",
+  STATE_MICRO = "micro_start",
   STATE_FOCUS = "focus",
   STATE_BREAK = "break",
 
@@ -10,6 +11,7 @@ local M = {
   timer = nil,
   sync_timer = nil,
   elapsed_focus_sec = 0,
+  micro_remaining_sec = 300,
   remaining_break_sec = 0,
   break_duration_sec = 0,
   start_epoch = 0,
@@ -128,7 +130,17 @@ function M.check_external_sync()
     M.seq = data.seq
 
     local now = os.time()
-    if data.state == "focus" then
+    if data.state == "micro_start" then
+      M.state = M.STATE_MICRO
+      M.start_epoch = data.start_epoch or now
+      local elapsed = math.max(0, now - M.start_epoch)
+      M.micro_remaining_sec = math.max(0, 300 - elapsed)
+      M.start_uv_timer()
+
+      local time_str = format_time(M.micro_remaining_sec)
+      ui.render("micro_start", string.format("⚡ %s", time_str), "Mikro-start (Desktop)")
+
+    elseif data.state == "focus" then
       M.state = M.STATE_FOCUS
       M.start_epoch = data.start_epoch or now
       M.elapsed_focus_sec = math.max(0, now - M.start_epoch)
@@ -189,7 +201,38 @@ end
 
 ---Oppdaterer HUD og intern tilstand ved hver timer-tikk
 local function tick()
-  if M.state == M.STATE_FOCUS then
+  if M.state == M.STATE_MICRO then
+    local now = os.time()
+    local elapsed = (M.start_epoch and M.start_epoch > 0) and math.max(0, now - M.start_epoch) or 0
+    if elapsed >= 300 then
+      -- 5 minutter fullført! Overgang til full fokus
+      M.state = M.STATE_FOCUS
+      M.elapsed_focus_sec = elapsed
+      broadcast_state()
+
+      local ok_stats, stats = pcall(require, "tether.stats")
+      if ok_stats and stats.record_micro_start then
+        stats.record_micro_start()
+      end
+      local ok_anchor, anchor = pcall(require, "tether.anchor")
+      if ok_anchor and anchor.save then
+        anchor.save("Mikro-start overgang")
+      end
+
+      local icon = config.options.hud.icons.focus or "󰔛"
+      ui.render("focus", string.format("%s 05:00", icon), "Fokus")
+      if config.options.notifications.enabled then
+        vim.notify("5 minutter fullført! ⚡🎉 Terskelen er overvunnet – du er i flyt!", vim.log.levels.INFO, {
+          title = "Tether Flowmodoro",
+        })
+      end
+    else
+      M.micro_remaining_sec = math.max(0, 300 - elapsed)
+      local time_str = format_time(M.micro_remaining_sec)
+      ui.render("micro_start", string.format("⚡ %s", time_str), "Mikro-start")
+    end
+
+  elseif M.state == M.STATE_FOCUS then
     if M.start_epoch and M.start_epoch > 0 then
       M.elapsed_focus_sec = math.max(0, os.time() - M.start_epoch)
     else
@@ -260,6 +303,24 @@ function M.stop_timer()
   end
 end
 
+---Starter en uforpliktende 5-minutters mikro-start (senker oppstartsterskelen)
+function M.start_micro()
+  M.state = M.STATE_MICRO
+  M.start_epoch = os.time()
+  M.elapsed_focus_sec = 0
+  M.micro_remaining_sec = 300
+  M.start_uv_timer()
+  broadcast_state()
+
+  ui.render("micro_start", "⚡ 05:00", "Mikro-start (5m)")
+
+  if config.options.notifications.enabled then
+    vim.notify("⚡ Mikro-start (5 min)!\nTerskelen er senket – du har lov til å stoppe etterpå med null skyldfølelse.", vim.log.levels.INFO, {
+      title = "Tether",
+    })
+  end
+end
+
 ---Starter en fokusøkt (teller oppover)
 function M.start_focus()
   M.state = M.STATE_FOCUS
@@ -298,6 +359,18 @@ function M.start_break()
   M.remaining_break_sec = break_sec
   broadcast_state()
 
+  local focus_mins = math.floor(M.elapsed_focus_sec / 60)
+  if focus_mins > 0 then
+    local ok_stats, stats = pcall(require, "tether.stats")
+    if ok_stats and stats.record_focus_minutes then
+      stats.record_focus_minutes(focus_mins)
+    end
+  end
+  local ok_anchor, anchor = pcall(require, "tether.anchor")
+  if ok_anchor and anchor.save then
+    anchor.save("Flowmodoro pause")
+  end
+
   local icon = config.options.hud.icons.rest or "󱫡"
   ui.render("break", string.format("%s %s", icon, break_formatted), "Pause")
 
@@ -317,6 +390,11 @@ end
 function M.toggle()
   if M.state == M.STATE_IDLE then
     M.start_focus()
+  elseif M.state == M.STATE_MICRO then
+    M.reset()
+    if config.options.notifications.enabled then
+      vim.notify("Bra forsøk! 🤍 Null skyldfølelse – prøv igjen senere når du er klar.", vim.log.levels.INFO, { title = "Tether" })
+    end
   elseif M.state == M.STATE_FOCUS then
     M.start_break()
   elseif M.state == M.STATE_BREAK then

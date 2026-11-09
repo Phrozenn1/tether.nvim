@@ -4,6 +4,8 @@ local flowmodoro = require("tether.flowmodoro")
 local impulse = require("tether.impulse")
 local yak = require("tether.yak")
 local ui = require("tether.ui")
+local anchor = require("tether.anchor")
+local stats = require("tether.stats")
 
 local M = {}
 
@@ -13,12 +15,18 @@ M.impulse = impulse
 M.yak = yak
 M.ui = ui
 M.config = config
+M.anchor = anchor
+M.stats = stats
 
 ---Registrerer brukerkommandoer
 local function setup_user_commands()
   vim.api.nvim_create_user_command("TetherFlowToggle", function()
     flowmodoro.toggle()
   end, { desc = "Tether: Veksle Flowmodoro (Fokus / Pause / Stopp)" })
+
+  vim.api.nvim_create_user_command("TetherMicroStart", function()
+    flowmodoro.start_micro()
+  end, { desc = "Tether: Start 5-minutters mikro-start" })
 
   vim.api.nvim_create_user_command("TetherFlowReset", function()
     flowmodoro.reset()
@@ -33,8 +41,22 @@ local function setup_user_commands()
   end, { desc = "Tether: Sett inn RAM-dump save-state i aktiv buffer" })
 
   vim.api.nvim_create_user_command("TetherResume", function()
-    ramdump.resume()
-  end, { desc = "Tether: Gjenoppta fra siste RAM-dump posisjon" })
+    anchor.resume()
+  end, { desc = "Tether: Gjenoppta fra siste kontekst-anker / RAM-dump" })
+
+  vim.api.nvim_create_user_command("TetherAnchor", function(opts)
+    local note = (opts.args and opts.args ~= "") and opts.args or nil
+    local saved = anchor.save(note)
+    if saved then
+      vim.notify(string.format("⚓ Kontekst-anker forankret: %s (L%d)", saved.relative_path, saved.line), vim.log.levels.INFO, {
+        title = "Tether Anchor",
+      })
+    end
+  end, { nargs = "?", desc = "Tether: Forankre aktiv kodekontekst og posisjon" })
+
+  vim.api.nvim_create_user_command("TetherMomentum", function()
+    stats.show_summary()
+  end, { desc = "Tether: Vis ukentlig flyt-momentum og XP" })
 
   vim.api.nvim_create_user_command("TetherImpulse", function()
     impulse.capture()
@@ -100,6 +122,12 @@ local function setup_keymaps()
     end, { desc = "Tether: Flowmodoro Toggle (Fokus/Pause)" })
   end
 
+  if km.micro_start then
+    vim.keymap.set("n", km.micro_start, function()
+      flowmodoro.start_micro()
+    end, { desc = "Tether: Start 5-minutters mikro-start" })
+  end
+
   if km.flow_reset then
     vim.keymap.set("n", km.flow_reset, function()
       flowmodoro.reset()
@@ -120,8 +148,25 @@ local function setup_keymaps()
 
   if km.resume then
     vim.keymap.set("n", km.resume, function()
-      ramdump.resume()
-    end, { desc = "Tether: Gjenoppta fra forrige dump" })
+      anchor.resume()
+    end, { desc = "Tether: Gjenoppta fra forrige anker / RAM-dump" })
+  end
+
+  if km.anchor then
+    vim.keymap.set("n", km.anchor, function()
+      local saved = anchor.save()
+      if saved then
+        vim.notify(string.format("⚓ Anker satt: %s (L%d)", saved.relative_path, saved.line), vim.log.levels.INFO, {
+          title = "Tether",
+        })
+      end
+    end, { desc = "Tether: Forankre posisjon og fil" })
+  end
+
+  if km.momentum then
+    vim.keymap.set("n", km.momentum, function()
+      stats.show_summary()
+    end, { desc = "Tether: Vis momentum og XP" })
   end
 
   if km.impulse then
@@ -156,6 +201,22 @@ local function setup_autocmds()
     group = grp,
     callback = function(args)
       yak.check_buffer(args.buf)
+    end,
+  })
+
+  -- Automatisk kontekst-anker når fokus mistes (f.eks. bytte til nettleser/desktop)
+  vim.api.nvim_create_autocmd("FocusLost", {
+    group = grp,
+    callback = function()
+      anchor.save()
+    end,
+  })
+
+  -- Lagre anker før Neovim avsluttes
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = grp,
+    callback = function()
+      anchor.save("Avsluttet Neovim")
     end,
   })
 end

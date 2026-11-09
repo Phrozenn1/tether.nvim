@@ -32,12 +32,22 @@ function M.insert()
     time = os.date("%H:%M:%S"),
   }
 
+  local ok_anchor, anchor = pcall(require, "tether.anchor")
+  if ok_anchor and anchor.save then
+    anchor.save("RAM-dump pause")
+  end
+
   vim.cmd("startinsert!")
 end
 
 ---Gjenopptar og hopper direkte tilbake til forrige RAM-dump posisjon
 function M.resume()
   if not M.last_dump or not M.last_dump.file or M.last_dump.file == "" then
+    local ok_anchor, anchor = pcall(require, "tether.anchor")
+    if ok_anchor and anchor.resume then
+      anchor.resume()
+      return
+    end
     vim.notify("Ingen lagret RAM-dump posisjon funnet.", vim.log.levels.WARN, { title = "Tether Resume" })
     return
   end

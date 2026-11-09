@@ -24,6 +24,8 @@ M.defaults = {
     colors = {
       focus_border = "#98c379", -- Grønn ramme for fokus
       focus_fg = "#98c379",
+      micro_border = "#e5c07b", -- Varm rav/oransje for mikro-start
+      micro_fg = "#e5c07b",
       rest_border = "#e06c75",  -- Rød ramme for pause
       rest_fg = "#e06c75",
       title_fg = "#abb2bf",
@@ -87,10 +89,13 @@ M.defaults = {
   keymaps = {
     flow_toggle = "<leader>tf",
     flow_reset = "<leader>tF",
+    micro_start = "<leader>t5",
     hud_toggle = "<leader>th",
     ramdump = "<leader>td",
     impulse = "<leader>ti",
     resume = "<leader>tr",
+    anchor = "<leader>ta",
+    momentum = "<leader>tm",
   },
   -- Notifikasjoner
   notifications = {

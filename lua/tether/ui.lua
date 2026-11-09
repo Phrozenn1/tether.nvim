@@ -41,6 +41,22 @@ function M.setup_highlights()
     bold = true,
     default = true,
   })
+
+  -- Rav/gul ramme for mikro-start
+  vim.api.nvim_set_hl(0, "TetherMicroBorder", {
+    fg = colors.micro_border or "#e5c07b",
+    default = true,
+  })
+  vim.api.nvim_set_hl(0, "TetherMicroTitle", {
+    fg = colors.micro_fg or "#e5c07b",
+    bold = true,
+    default = true,
+  })
+  vim.api.nvim_set_hl(0, "TetherMicroText", {
+    fg = colors.micro_fg or "#e5c07b",
+    bold = true,
+    default = true,
+  })
 end
 
 ---Beregner vindusposisjon for øvre høyre hjørne
@@ -90,9 +106,18 @@ function M.render(mode, text, title)
   win_cfg.title = " " .. title .. " "
   win_cfg.title_pos = "center"
 
-  local is_focus = (mode == "focus")
-  local hl_ns = is_focus and "FloatBorder:TetherFocusBorder,FloatTitle:TetherFocusTitle,Normal:NormalFloat"
-    or "FloatBorder:TetherBreakBorder,FloatTitle:TetherBreakTitle,Normal:NormalFloat"
+  local hl_ns
+  local text_hl
+  if mode == "focus" then
+    hl_ns = "FloatBorder:TetherFocusBorder,FloatTitle:TetherFocusTitle,Normal:NormalFloat"
+    text_hl = "TetherFocusText"
+  elseif mode == "micro_start" then
+    hl_ns = "FloatBorder:TetherMicroBorder,FloatTitle:TetherMicroTitle,Normal:NormalFloat"
+    text_hl = "TetherMicroText"
+  else
+    hl_ns = "FloatBorder:TetherBreakBorder,FloatTitle:TetherBreakTitle,Normal:NormalFloat"
+    text_hl = "TetherBreakText"
+  end
 
   -- Oppdater tekst i bufferen (sentrert)
   local width = win_cfg.width
@@ -102,7 +127,6 @@ function M.render(mode, text, title)
   vim.api.nvim_buf_set_lines(M.buf, 0, -1, false, { padded_text })
 
   -- Påfør tekst-highlight
-  local text_hl = is_focus and "TetherFocusText" or "TetherBreakText"
   vim.api.nvim_buf_clear_namespace(M.buf, -1, 0, -1)
   local ns = vim.api.nvim_create_namespace("tether_hud_text")
   vim.api.nvim_buf_add_highlight(M.buf, ns, text_hl, 0, 0, -1)
