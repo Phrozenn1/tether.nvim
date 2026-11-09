@@ -94,6 +94,8 @@ M.defaults = {
     ramdump = "<leader>td",
     impulse = "<leader>ti",
     resume = "<leader>tr",
+    anchor = "<leader>ta",
+    momentum = "<leader>tm",
   },
   -- Notifikasjoner
   notifications = {

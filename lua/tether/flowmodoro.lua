@@ -210,6 +210,15 @@ local function tick()
       M.elapsed_focus_sec = elapsed
       broadcast_state()
 
+      local ok_stats, stats = pcall(require, "tether.stats")
+      if ok_stats and stats.record_micro_start then
+        stats.record_micro_start()
+      end
+      local ok_anchor, anchor = pcall(require, "tether.anchor")
+      if ok_anchor and anchor.save then
+        anchor.save("Mikro-start overgang")
+      end
+
       local icon = config.options.hud.icons.focus or "󰔛"
       ui.render("focus", string.format("%s 05:00", icon), "Fokus")
       if config.options.notifications.enabled then
@@ -349,6 +358,18 @@ function M.start_break()
   M.break_duration_sec = break_sec
   M.remaining_break_sec = break_sec
   broadcast_state()
+
+  local focus_mins = math.floor(M.elapsed_focus_sec / 60)
+  if focus_mins > 0 then
+    local ok_stats, stats = pcall(require, "tether.stats")
+    if ok_stats and stats.record_focus_minutes then
+      stats.record_focus_minutes(focus_mins)
+    end
+  end
+  local ok_anchor, anchor = pcall(require, "tether.anchor")
+  if ok_anchor and anchor.save then
+    anchor.save("Flowmodoro pause")
+  end
 
   local icon = config.options.hud.icons.rest or "󱫡"
   ui.render("break", string.format("%s %s", icon, break_formatted), "Pause")
