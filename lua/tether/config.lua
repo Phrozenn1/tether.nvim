@@ -43,7 +43,7 @@ M.defaults = {
   },
   -- Side-quest / Impulsbuffer
   impulse = {
-    file = vim.fn.stdpath("data") .. "/tether_impulses.md",
+    file = vim.fn.expand("~/.local/state/tether/impulses.md"),
     format = "markdown_checkbox", -- "markdown_checkbox" | "markdown_bullet" | "todo_txt" | "json"
   },
   -- Yak-Shaving / Kaninhull-detektor

@@ -19,7 +19,18 @@ local M = {
 
 ---Sti til felles tilstandsfil for synkronisering med Tether Desktop
 local function get_state_file()
-  local dir = vim.fn.stdpath("state") .. "/tether"
+  local state_home = os.getenv("XDG_STATE_HOME")
+  local base_dir
+  if state_home and state_home ~= "" then
+    base_dir = state_home
+  elseif vim.fn.has("win32") == 1 then
+    base_dir = os.getenv("LOCALAPPDATA") or vim.fn.expand("~/AppData/Local")
+  elseif vim.fn.has("mac") == 1 then
+    base_dir = vim.fn.expand("~/Library/Application Support")
+  else
+    base_dir = vim.fn.expand("~/.local/state")
+  end
+  local dir = base_dir .. "/tether"
   if vim.fn.isdirectory(dir) == 0 then
     vim.fn.mkdir(dir, "p")
   end
@@ -58,6 +69,7 @@ end
 local function broadcast_state()
   local file = get_state_file()
   M.seq = (M.seq or 0) + 1
+  M.last_seen_desktop_seq = M.seq
   local payload = {
     state = M.state,
     start_epoch = M.start_epoch or os.time(),
@@ -99,7 +111,11 @@ function M.check_external_sync()
     return
   end
 
-  if data.writer == "desktop" and data.seq ~= M.last_seen_desktop_seq then
+  local is_new_seq = (data.seq ~= M.last_seen_desktop_seq)
+  local is_desktop = (data.writer == "desktop")
+  local is_startup_recovery = (M.last_seen_desktop_seq == 0 and data.state ~= "idle" and M.state == "idle")
+
+  if (is_desktop and is_new_seq) or is_startup_recovery then
     M.last_seen_desktop_seq = data.seq
     M.seq = data.seq
 
@@ -142,6 +158,10 @@ function M.start_sync_watcher()
   if M.sync_timer then
     return
   end
+
+  -- Sjekk synkronisering umiddelbart ved oppstart
+  M.check_external_sync()
+
   local uv = vim.uv or vim.loop
   M.sync_timer = uv.new_timer()
   M.sync_timer:start(
