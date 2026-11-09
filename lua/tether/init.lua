@@ -20,6 +20,10 @@ local function setup_user_commands()
     flowmodoro.toggle()
   end, { desc = "Tether: Veksle Flowmodoro (Fokus / Pause / Stopp)" })
 
+  vim.api.nvim_create_user_command("TetherMicroStart", function()
+    flowmodoro.start_micro()
+  end, { desc = "Tether: Start 5-minutters mikro-start" })
+
   vim.api.nvim_create_user_command("TetherFlowReset", function()
     flowmodoro.reset()
   end, { desc = "Tether: Nullstill Flowmodoro og lukk vindu" })
@@ -98,6 +102,12 @@ local function setup_keymaps()
     vim.keymap.set("n", km.flow_toggle, function()
       flowmodoro.toggle()
     end, { desc = "Tether: Flowmodoro Toggle (Fokus/Pause)" })
+  end
+
+  if km.micro_start then
+    vim.keymap.set("n", km.micro_start, function()
+      flowmodoro.start_micro()
+    end, { desc = "Tether: Start 5-minutters mikro-start" })
   end
 
   if km.flow_reset then
