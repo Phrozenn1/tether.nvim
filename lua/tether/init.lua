@@ -6,6 +6,7 @@ local yak = require("tether.yak")
 local ui = require("tether.ui")
 local anchor = require("tether.anchor")
 local stats = require("tether.stats")
+local focus = require("tether.focus")
 
 local M = {}
 
@@ -17,6 +18,7 @@ M.ui = ui
 M.config = config
 M.anchor = anchor
 M.stats = stats
+M.focus = focus
 
 ---Registrerer brukerkommandoer
 local function setup_user_commands()
@@ -204,18 +206,27 @@ local function setup_autocmds()
     end,
   })
 
-  -- Automatisk kontekst-anker når fokus mistes (f.eks. bytte til nettleser/desktop)
+  -- Automatisk kontekst-anker og fokussporing
+  vim.api.nvim_create_autocmd("FocusGained", {
+    group = grp,
+    callback = function()
+      focus.set_focused(true)
+    end,
+  })
+
   vim.api.nvim_create_autocmd("FocusLost", {
     group = grp,
     callback = function()
+      focus.set_focused(false)
       anchor.save()
     end,
   })
 
-  -- Lagre anker før Neovim avsluttes
+  -- Lagre anker og nullstill fokus før Neovim avsluttes
   vim.api.nvim_create_autocmd("VimLeavePre", {
     group = grp,
     callback = function()
+      focus.set_focused(false)
       anchor.save("Avsluttet Neovim")
     end,
   })
@@ -230,6 +241,7 @@ function M.setup(user_opts)
   setup_keymaps()
   setup_autocmds()
   flowmodoro.start_sync_watcher()
+  focus.set_focused(true)
 
   -- Auto-start desktop HUD hvis aktivert i felles konfigurasjon
   if config.options.companion and config.options.companion.auto_start_desktop then
