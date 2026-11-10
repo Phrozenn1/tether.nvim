@@ -43,15 +43,24 @@ Traditional Pomodoro (25m work / 5m break) frequently backfires for ADHD minds: 
 - **Heads-Up Display (Floating HUD):**
   - Stays pinned to the top-right corner (`anchor = "NE"`) above all splits.
   - Completely unfocusable (`focusable = false`) — your cursor will never accidentally land inside it.
-  - Dynamic borders: 🟢 **Green** (`#98c379`) during Focus, 🔴 **Red** (`#e06c75`) during Break.
+  - Dynamic borders: 🟢 **Green** (`#98c379`) during Focus, 🔴 **Red** (`#e06c75`) during Break, and 🟡 **Warm Amber** (`#e5c07b`) during Micro-Start.
+- **5-Minute Micro-Start (`<leader>t5`):**
+  - Melts task-initiation paralysis by lowering the psychological bar to just 5 minutes.
+  - Automatically transitions into standard Flowmodoro counting up once the 5 minutes are completed.
+- **Banked Break Time & Seamless Resumption:**
+  - Returning early from a break saves your unspent rest time to your bank and resumes your focus session seamlessly.
+- **Context Resumption Anchor (`<leader>tr` / `<leader>ta`):**
+  - Jumps your cursor and buffer directly back to where you made your last RAM-dump or saved an anchor.
+- **Platform-Agnostic Editor Focus Sync:**
+  - Automatically reports focus state (`FocusGained`/`FocusLost`) to `~/.local/state/tether/editor_focus.json` so Tether Desktop can react on any desktop environment (GNOME, KDE, Wayland, X11, macOS, Windows).
 - **Proportional Break Ratio (45:15):**
   - Automatically calculates $\frac{15}{45} = \frac{1}{3}$ of your focus time for rest. Fully customizable.
 - **60-Second RAM-Dump Save-State (`<leader>td`):**
   - Rapidly injects a minimal 3-line state tracker (`[NÅ]`, `[STATUS]`, `[NESTE STEG]`) and activates Insert Mode.
-- **Context Resumption Anchor (`<leader>tr`):**
-  - Jumps your cursor and buffer directly back to where you made your last RAM-dump.
 - **Side-Quest / Impulse Buffer (`<leader>ti`):**
-  - Stray thoughts (*"Pay electricity bill"*, *"Refactor database"*) strike constantly. Press `<leader>ti`, type the thought, and hit Enter. It appends to a dated capture file and closes without moving your cursor or disrupting your flow.
+  - Stray thoughts (*"Pay electricity bill"*, *"Refactor database"*) strike constantly. Press `<leader>ti`, type the thought, and hit Enter. It appends to a dated capture file with interactive markdown checkboxes (`- [ ]`) without moving your cursor.
+- **Momentum & Flyt-XP (`<leader>tm`):**
+  - Shame-free weekly progress tracking without punishing broken streaks.
 - **Yak-Shaving / Rabbit-Hole Alarm 🪒:**
   - If you drift into tweaking dotfiles (`~/.config/nvim/`, etc.) during an active focus block, Tether delivers a witty/sarcastic reminder to keep you on track.
 - **Zero Editor Lag:**
