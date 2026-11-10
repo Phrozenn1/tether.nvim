@@ -19,13 +19,13 @@
 
 ### Flowmodoro Timer, RAM-Dump & Cognitive Anchor for Neovim
 
-A deep-work companion for Neovim designed specifically for neurodivergent developers (**ADHD**, **Autism/ASD**, **Dyslexia**, and **AuDHD**) to mitigate **executive dysfunction**, **working memory decay**, **monotropic flow disruption**, **time blindness**, and **cognitive inertia**.
+A humane deep-work companion for Neovim. Engineered with universal design principles that empower neurodivergent minds (**ADHD**, **Autism/ASD**, **Dyslexia**, and **AuDHD**) while providing an unbeatably calm, distraction-free environment for **any writer, researcher, or developer** seeking sustainable focus.
 
 ---
 
 ## ⏱️ Why Flowmodoro Instead of Pomodoro?
 
-Traditional Pomodoro (25m work / 5m break) frequently backfires for neurodivergent minds: it forcibly interrupts hyperfocus and monotropic attention tunnels mid-thought, destroying fragile working memory contexts that took 40 minutes to assemble.
+Traditional Pomodoro (25m work / 5m break) frequently backfires for deep creative and analytical work: it forcibly interrupts hyperfocus and monotropic attention tunnels mid-thought, destroying fragile working memory contexts that took 40 minutes to assemble.
 
 **Flowmodoro** solves this by counting **UP**:
 
