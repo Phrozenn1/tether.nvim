@@ -17,15 +17,15 @@
   - [📄 License](#📄-license)
 <!--toc:end-->
 
-### Flowmodoro Timer, RAM-Dump & ADHD Workflow Engine for Neovim
+### Flowmodoro Timer, RAM-Dump & Cognitive Anchor for Neovim
 
-A neurodivergent-friendly deep-work companion for Neovim designed to mitigate **executive dysfunction**, **time blindness**, and **cognitive inertia**.
+A deep-work companion for Neovim designed specifically for neurodivergent developers (**ADHD**, **Autism/ASD**, **Dyslexia**, and **AuDHD**) to mitigate **executive dysfunction**, **working memory decay**, **monotropic flow disruption**, **time blindness**, and **cognitive inertia**.
 
 ---
 
 ## ⏱️ Why Flowmodoro Instead of Pomodoro?
 
-Traditional Pomodoro (25m work / 5m break) frequently backfires for ADHD minds: it forcibly interrupts hyperfocus mid-thought, destroying fragile working memory contexts that took 40 minutes to assemble.
+Traditional Pomodoro (25m work / 5m break) frequently backfires for neurodivergent minds: it forcibly interrupts hyperfocus and monotropic attention tunnels mid-thought, destroying fragile working memory contexts that took 40 minutes to assemble.
 
 **Flowmodoro** solves this by counting **UP**:
 
@@ -206,7 +206,7 @@ require("tether").setup({
 
 ## 🏷️ Topics / Keywords
 
-`flowmodoro` `flowmodoro-timer` `neovim-plugin` `pomodoro` `adhd` `neurodiversity` `deep-work` `executive-function` `productivity` `lua`
+`flowmodoro` `flowmodoro-timer` `neovim-plugin` `pomodoro` `neurodiversity` `adhd` `autism` `dyslexia` `deep-work` `executive-function` `productivity` `lua`
 
 ---
 
