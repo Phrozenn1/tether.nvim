@@ -1,23 +1,12 @@
 # tether.nvim ⚓
 
-<!--toc:start-->
-- [tether.nvim ⚓](#tethernvim)
-  - [Flowmodoro Timer, RAM-Dump & ADHD Workflow Engine for Neovim](#flowmodoro-timer-ram-dump-adhd-workflow-engine-for-neovim)
-  - [⏱️ Why Flowmodoro Instead of Pomodoro?](#️-why-flowmodoro-instead-of-pomodoro)
-  - [✨ Features](#features)
-  - [⚡ Requirements](#requirements)
-  - [📦 Installation](#📦-installation)
-    - [[lazy.nvim](https://github.com/folke/lazy.nvim)](#lazynvimhttpsgithubcomfolkelazynvim)
-    - [[mini.deps](https://github.com/echasnovski/mini.deps)](#minidepshttpsgithubcomechasnovskiminideps)
-    - [[vim-plug](https://github.com/junegunn/vim-plug)](#vim-plughttpsgithubcomjunegunnvim-plug)
-    - [Manual Installation (Native Neovim Packpath)](#manual-installation-native-neovim-packpath)
-  - [⌨️ Default Keymaps (`<leader>t`)](#️-default-keymaps-leadert)
-  - [⚙️ Configuration (Defaults)](#️-configuration-defaults)
-  - [🏷️ Topics / Keywords](#🏷️-topics-keywords)
-  - [📄 License](#📄-license)
-<!--toc:end-->
+[![GitHub release](https://img.shields.io/github/v/release/Phrozenn1/tether.nvim?style=flat-square&color=22d3ee)](https://github.com/Phrozenn1/tether.nvim/releases)
+[![Neovim >= 0.9.0](https://img.shields.io/badge/Neovim-%3E%3D0.9.0-57A143?style=flat-square&logo=neovim)](https://neovim.io)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg?style=flat-square)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-Phrozenn1%2Ftether--nvim-181717?style=flat-square&logo=github)](https://github.com/Phrozenn1/tether.nvim)
 
-### Flowmodoro Timer, RAM-Dump & Cognitive Anchor for Neovim
+> **Flowmodoro timer, RAM-dump save-states, and cognitive anchoring for deep work, neurodivergent minds, and focus.**  
+> Seamlessly integrated with [Tether Desktop](https://github.com/Phrozenn1/tether-desktop), [tether-vscode](https://github.com/Phrozenn1/tether-vscode), and [tether-obsidian](https://github.com/Phrozenn1/tether-obsidian).
 
 A humane deep-work companion for Neovim. Engineered with universal design principles that empower neurodivergent minds (**ADHD**, **Autism/ASD**, **Dyslexia**, and **AuDHD**) while providing an unbeatably calm, distraction-free environment for **any writer, researcher, or developer** seeking sustainable focus.
 
@@ -61,6 +50,8 @@ Traditional Pomodoro (25m work / 5m break) frequently backfires for deep creativ
   - Stray thoughts (*"Pay electricity bill"*, *"Refactor database"*) strike constantly. Press `<leader>ti`, type the thought, and hit Enter. It appends to a dated capture file with interactive markdown checkboxes (`- [ ]`) without moving your cursor.
 - **Momentum & Flyt-XP (`<leader>tm`):**
   - Shame-free weekly progress tracking without punishing broken streaks.
+- **Evening Shutdown Ritual (`<leader>ts` / `:TetherShutdown`):**
+  - Cleanly stops active flow, captures an end-of-day summary plus tomorrow's first micro-step to `~/.local/state/tether/ramdumps.md`, and writes `last_shutdown.json` for *"Where Was I?"* morning recovery.
 - **Yak-Shaving / Rabbit-Hole Alarm 🪒:**
   - If you drift into tweaking dotfiles (`~/.config/nvim/`, etc.) during an active focus block, Tether delivers a witty/sarcastic reminder to keep you on track.
 - **Zero Editor Lag:**
@@ -120,10 +111,15 @@ git clone https://github.com/Phrozenn1/tether.nvim.git \
 | :--- | :--- | :--- |
 | **`<leader>tf`** | `:TetherFlowToggle` | **T**ether **F**low: Cycle Idle $\rightarrow$ Focus $\rightarrow$ Break $\rightarrow$ Idle |
 | **`<leader>tF`** | `:TetherFlowReset` | **T**ether **F**orce-stop: Reset timer and close HUD |
+| **`<leader>t5`** | `:TetherMicroStart` | **T**ether **5**m: Start low-friction 5-minute Micro-Start |
 | **`<leader>th`** | `:TetherHud` | **T**ether **H**UD: Toggle visibility of the floating timer |
 | **`<leader>td`** | `:TetherRamDump` | **T**ether **D**ump: Insert 60-second RAM-dump save-state |
 | **`<leader>tr`** | `:TetherResume` | **T**ether **R**esume: Jump back to last RAM-dump location |
+| **`<leader>ta`** | `:TetherAnchor` | **T**ether **A**nchor: Pin current buffer & line as context anchor |
+| **`<leader>tm`** | `:TetherMomentum` | **T**ether **M**omentum: View weekly Flyt-XP stats |
 | **`<leader>ti`** | `:TetherImpulse` | **T**ether **I**mpulse: Offload a side-quest / stray thought |
+| **`<leader>ts`** | `:TetherShutdown` | **T**ether **S**hutdown: Evening shutdown ritual & park working memory |
+| — | `:TetherImpulseList` | Open and toggle tracked impulses in a split/buffer |
 | — | `:TetherDesktop` | Launch or focus the native cross-platform Tether Desktop companion |
 | — | `:TetherConfig` | Open `~/.config/tether/config.json` in split |
 
@@ -158,6 +154,8 @@ require("tether").setup({
     colors = {
       focus_border = "#98c379", -- Green border in focus
       focus_fg = "#98c379",
+      micro_border = "#e5c07b", -- Warm amber border in Micro-Start
+      micro_fg = "#e5c07b",
       rest_border = "#e06c75",  -- Red border in break
       rest_fg = "#e06c75",
       title_fg = "#abb2bf",
@@ -177,7 +175,7 @@ require("tether").setup({
   },
   -- Side-quest impulse capture file
   impulse = {
-    file = vim.fn.stdpath("data") .. "/tether_impulses.md",
+    file = vim.fn.expand("~/.local/state/tether/impulses.md"),
     format = "markdown_checkbox", -- "markdown_checkbox" | "markdown_bullet" | "todo_txt" | "json"
   },
   -- Cross-platform Desktop Companion integration
@@ -194,13 +192,34 @@ require("tether").setup({
   keymaps = {
     flow_toggle = "<leader>tf",
     flow_reset = "<leader>tF",
+    micro_start = "<leader>t5",
     hud_toggle = "<leader>th",
     ramdump = "<leader>td",
     impulse = "<leader>ti",
     resume = "<leader>tr",
+    anchor = "<leader>ta",
+    momentum = "<leader>tm",
+    shutdown = "<leader>ts",
   },
 })
 ```
+
+---
+
+## 🔄 Cross-App Ecosystem
+
+Tether is a unified neurodivergent companion across your tools—all sharing state via `~/.local/state/tether/`:
+- **[Tether Desktop](https://github.com/Phrozenn1/tether-desktop)**: Cross-platform companion with offline focus soundscapes, AI-assisted RAM-dumps, Dopamine Menu, Time Anchor, and universal app tracking.
+- **[tether.nvim](https://github.com/Phrozenn1/tether.nvim)**: This plugin!
+- **[tether-vscode](https://github.com/Phrozenn1/tether-vscode)**: Status bar timer, context anchor, and RAM-dump commands for VS Code.
+- **[tether-obsidian](https://github.com/Phrozenn1/tether-obsidian)**: Flowmodoro status bar, note anchoring, RAM-dump CRUD manager, and Shutdown Ritual for Obsidian.
+
+---
+
+## 🔬 Scientific Foundation
+
+Tether's Flowmodoro timing, Micro-Start initiation scaffolding, RAM-dump working memory capture, and interruption buffering are grounded in peer-reviewed research in cognitive neuroscience:
+- 👉 [**`RESEARCH.md` — Scientific Rationale & Neurodivergent Research Foundation**](https://github.com/Phrozenn1/tether-desktop/blob/main/RESEARCH.md)
 
 ---
 
@@ -212,4 +231,4 @@ require("tether").setup({
 
 ## 📄 License
 
-MIT © [Kim Bech](https://github.com/Phrozenn1)
+[GPL-2.0](LICENSE) © [Phrozenn1](https://github.com/Phrozenn1)

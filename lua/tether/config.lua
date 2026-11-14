@@ -96,6 +96,7 @@ M.defaults = {
     resume = "<leader>tr",
     anchor = "<leader>ta",
     momentum = "<leader>tm",
+    shutdown = "<leader>ts",
   },
   -- Notifikasjoner
   notifications = {

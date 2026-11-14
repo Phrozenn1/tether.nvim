@@ -7,6 +7,7 @@ local ui = require("tether.ui")
 local anchor = require("tether.anchor")
 local stats = require("tether.stats")
 local focus = require("tether.focus")
+local shutdown = require("tether.shutdown")
 
 local M = {}
 
@@ -19,6 +20,7 @@ M.config = config
 M.anchor = anchor
 M.stats = stats
 M.focus = focus
+M.shutdown = shutdown
 
 ---Registrerer brukerkommandoer
 local function setup_user_commands()
@@ -71,6 +73,10 @@ local function setup_user_commands()
   vim.api.nvim_create_user_command("TetherDesktop", function()
     M.open_or_focus_desktop()
   end, { desc = "Tether: Åpne eller fokuser Desktop-appen" })
+
+  vim.api.nvim_create_user_command("TetherShutdown", function()
+    shutdown.run()
+  end, { desc = "Tether: Start dagsavslutnings-rutine (Shutdown Ritual)" })
 
   vim.api.nvim_create_user_command("TetherConfig", function()
     local config_path = vim.fn.expand("~/.config/tether/config.json")
@@ -175,6 +181,12 @@ local function setup_keymaps()
     vim.keymap.set("n", km.impulse, function()
       impulse.capture()
     end, { desc = "Tether: Fange side-quest / impuls" })
+  end
+
+  if km.shutdown then
+    vim.keymap.set("n", km.shutdown, function()
+      shutdown.run()
+    end, { desc = "Tether: Dagsavslutnings-rutine (Shutdown)" })
   end
 end
 
